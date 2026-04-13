@@ -6,7 +6,13 @@ from app.models.finance import ExpenseCategory, Expense, Subscription, Budget
 from app.utilities.security import encrypt_password
 
 
-cli = typer.Typer()
+cli = typer.Typer(no_args_is_help=True)
+
+
+@cli.callback()
+def app():
+    """Personal finance CLI commands."""
+    pass
 
 
 @cli.command()

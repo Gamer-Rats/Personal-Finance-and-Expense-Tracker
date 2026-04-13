@@ -18,4 +18,4 @@ class User(UserBase, table=True):
     categories: list["ExpenseCategory"] = Relationship(back_populates="user")
     expenses: list["Expense"] = Relationship(back_populates="user")
     subscriptions: list["Subscription"] = Relationship(back_populates="user")
-    budgets: list["Budget"] = Relationship(back_populates="user")ck_populates="user")ck_populates="user")ck_populates="user")
+    budgets: list["Budget"] = Relationship(back_populates="user")
