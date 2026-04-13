@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI, Request, status
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
 from app.routers import templates, static_files, router, api_router
@@ -24,6 +25,7 @@ app = FastAPI(middleware=[
 app.include_router(router)
 app.include_router(api_router)
 app.mount("/static", static_files, name="static")
+app.mount("/template-images", StaticFiles(directory="app/templates/images"), name="template_images")
 
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
 async def unauthorized_redirect_handler(request: Request, exc: Exception):
