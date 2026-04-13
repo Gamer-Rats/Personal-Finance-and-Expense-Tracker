@@ -3,6 +3,8 @@ from app.utilities.security import encrypt_password, verify_password, create_acc
 from app.schemas.user import RegularUserCreate
 from typing import Optional
 
+MIN_PASSWORD_LENGTH = 7
+
 
 class AuthService:
     def __init__(self, user_repo: UserRepository):
@@ -16,6 +18,9 @@ class AuthService:
         return access_token
 
     def register_user(self, username: str, email: str, password: str, monthly_income: float = 0.0):
+        if len(password or "") < MIN_PASSWORD_LENGTH:
+            raise ValueError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters long.")
+
         new_user = RegularUserCreate(
             username=username,
             email=email,

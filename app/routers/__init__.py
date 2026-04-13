@@ -26,4 +26,5 @@ from . import (
     subscriptions,
     budgets,
     reports,
+    chatbot,
 )
