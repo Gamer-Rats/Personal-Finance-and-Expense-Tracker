@@ -3,6 +3,104 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block subpage_content %}
+<style>
+    .burn-rate-card {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+    }
+
+    .burn-rate-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .burn-rate-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+
+    .burn-rate-badge {
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .burn-rate-badge.excellent {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .burn-rate-badge.healthy {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .burn-rate-badge.caution {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .burn-rate-badge.overspending {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .burn-rate-stats {
+        margin-bottom: 0.75rem;
+        line-height: 1.7;
+    }
+
+    .burn-rate-label {
+        font-weight: 600;
+    }
+
+    .burn-rate-bar {
+        width: 100%;
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .burn-rate-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+
+    .burn-rate-fill-excellent {
+        background: #22c55e;
+    }
+
+    .burn-rate-fill-healthy {
+        background: #3b82f6;
+    }
+
+    .burn-rate-fill-caution {
+        background: #f59e0b;
+    }
+
+    .burn-rate-fill-overspending {
+        background: #ef4444;
+    }
+
+    .burn-rate-note {
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+</style>
+
 <div class="container-fluid">
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -59,6 +157,55 @@
                         <a class="btn btn-outline-primary" href="/subscriptions">Manage Subscriptions</a>
                         <a class="btn btn-outline-primary" href="/budgets">Manage Budgets</a>
                         <a class="btn btn-outline-dark" href="/reports">View Reports</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm savings-indicator-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                        <div>
+                            <p class="text-muted mb-1">Savings / Burn Rate Indicator</p>
+                            <h5 class="card-title mb-0">Monthly Financial Health</h5>
+                        </div>
+                        <span class="burn-rate-badge burn-rate-badge-{{ summary.burn_rate_tone }}">
+                            {{ summary.burn_rate_status }}
+                        </span>
+                    </div>
+
+                    {% set capped_burn_rate = summary.burn_rate if summary.burn_rate <= 1 else 1 %}
+                    {% set burn_rate_percent = capped_burn_rate * 100 %}
+                    <div class="burn-rate-meter mb-3">
+                        <div class="burn-rate-fill burn-rate-fill-{{ summary.burn_rate_tone }}" style="width: {{ '%.1f'|format(burn_rate_percent) }}%;"></div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="indicator-stat h-100">
+                                <p class="text-muted mb-1">Burn Rate</p>
+                                <h4 class="mb-1">{{ '%.1f'|format(summary.burn_rate * 100) }}% of income</h4>
+                                <small class="text-muted">Based on one-time expenses and active subscriptions for {{ summary.current_month }}.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="indicator-stat h-100">
+                                <p class="text-muted mb-1">Savings Remaining</p>
+                                <h4 class="mb-1 {% if summary.savings_remaining < 0 %}text-danger{% endif %}">
+                                    ${{ '%.2f'|format(summary.savings_remaining) }}
+                                </h4>
+                                <small class="text-muted">
+                                    {% if summary.savings_remaining >= 0 %}
+                                    {{ '%.1f'|format(summary.savings_rate * 100) }}% of income still available.
+                                    {% else %}
+                                    You are over your income by ${{ '%.2f'|format(0 - summary.savings_remaining) }}.
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

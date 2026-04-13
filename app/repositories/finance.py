@@ -274,6 +274,24 @@ class FinanceRepository:
         monthly_budget_total = sum(item.limit_amount for item in budgets)
         monthly_total_spending = monthly_expense_total + monthly_subscription_total
         burn_rate = (monthly_total_spending / user.monthly_income) if user.monthly_income > 0 else 0
+        savings_remaining = user.monthly_income - monthly_total_spending
+        savings_rate = (savings_remaining / user.monthly_income) if user.monthly_income > 0 else 0
+
+        if user.monthly_income <= 0:
+            burn_rate_status = "No income set"
+            burn_rate_tone = "neutral"
+        elif burn_rate < 0.5:
+            burn_rate_status = "Excellent"
+            burn_rate_tone = "good"
+        elif burn_rate < 0.75:
+            burn_rate_status = "Healthy"
+            burn_rate_tone = "good"
+        elif burn_rate <= 1:
+            burn_rate_status = "Caution"
+            burn_rate_tone = "warning"
+        else:
+            burn_rate_status = "Overspending"
+            burn_rate_tone = "danger"
 
         recent_expenses = self.db.exec(
             select(Expense)
@@ -289,6 +307,10 @@ class FinanceRepository:
             "monthly_total_spending": monthly_total_spending,
             "monthly_budget_total": monthly_budget_total,
             "burn_rate": burn_rate,
+            "savings_remaining": savings_remaining,
+            "savings_rate": savings_rate,
+            "burn_rate_status": burn_rate_status,
+            "burn_rate_tone": burn_rate_tone,
             "recent_expenses": recent_expenses,
         }
 
