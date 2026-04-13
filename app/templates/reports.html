@@ -7,6 +7,97 @@
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="https://code.highcharts.com/modules/export-data.js"></script>
 
+<style>
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .analytics-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .analytics-card h3,
+    .analytics-card h4,
+    .analytics-card h5 {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+    }
+
+    .top-category-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .top-category-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2563eb;
+    }
+
+    .budget-progress-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .budget-progress-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .budget-progress-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.95rem;
+    }
+
+    .budget-progress-label {
+        font-weight: 600;
+    }
+
+    .budget-progress-bar {
+        width: 100%;
+        height: 14px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .budget-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+
+    .budget-progress-safe {
+        background: #22c55e;
+    }
+
+    .budget-progress-warning {
+        background: #f59e0b;
+    }
+
+    .budget-progress-danger {
+        background: #ef4444;
+    }
+
+    .empty-analytics {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+</style>
+
 <div class="container-fluid">
     <div class="row g-4">
         <div class="col-lg-6">
@@ -17,12 +108,68 @@
                 </div>
             </div>
         </div>
+
         <div class="col-lg-6">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">Active Subscription Breakdown</h5>
                     <div id="subscription-chart"></div>
                 </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Monthly Spending Trend</h5>
+                    {% if monthly_spending_trend %}
+                        <div id="monthly-spending-chart"></div>
+                    {% else %}
+                        <p class="empty-analytics">No spending data available yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        {% for category in top_categories %}
+            <div class="analytics-card">
+                <h4>Top Category {{ loop.index }}</h4>
+                <div class="top-category-name">{{ category.name }}</div>
+                <div class="top-category-value">${{ '%.2f' | format(category.total) }}</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="analytics-card">
+                <h3>Budget vs Actual</h3>
+
+                {% if budgets %}
+                    <div class="budget-progress-list">
+                        {% for budget in budgets %}
+                            <div class="budget-progress-item">
+                                <div class="budget-progress-header">
+                                    <span class="budget-progress-label">{{ budget.category }}</span>
+                                    <span>
+                                        ${{ '%.2f' | format(budget.actual) }} / ${{ '%.2f' | format(budget.limit_amount) }}
+                                        ({{ '%.0f' | format(budget.percent) }}%)
+                                    </span>
+                                </div>
+                                <div class="budget-progress-bar">
+                                    <div
+                                        class="budget-progress-fill budget-progress-{{ budget.tone }}"
+                                        style="width: {{ '%.1f' | format(100 if budget.percent > 100 else budget.percent) }}%;"
+                                    ></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="empty-analytics">No budgets available yet.</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -41,22 +188,54 @@ function convertData(data){
 
 function drawPieChart(containerId, title, data){
     Highcharts.chart(containerId, {
-        chart: { type: 'pie' },
-        title: { text: title },
-        tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
+        chart: { 
+            type: 'pie' 
+        },
+        title: { 
+            text: title 
+        },
+        tooltip: { 
+            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' 
+        },
         plotOptions: {
             pie: {
                 allowPointSelect: true,
                 cursor: 'pointer',
                 dataLabels: { enabled: false },
-                showInLegend: true,
+                showInLegend: true
             }
         },
         series: [{
             name: 'Share',
             colorByPoint: true,
-            data: data,
+            data: data
         }]
+    });
+}
+
+function drawLineChart(containerId, categories, data){
+    Highcharts.chart(containerId, {
+        chart: { 
+            type: 'line' 
+        },
+        title: { 
+            text: 'Monthly Spending Trend' 
+        },
+        xAxis: {
+            categories: categories
+        },
+        yAxis: {
+            title: {
+                text: 'Amount Spent'
+            }
+        },
+        series: [{
+            name: 'Spending',
+            data: data
+        }],
+        credits: {
+            enabled: false
+        }
     });
 }
 
@@ -68,6 +247,14 @@ async function loadCharts(){
     let subscriptionRes = await fetch('/api/subscription-stats');
     let subscriptionData = convertData(await subscriptionRes.json());
     drawPieChart('subscription-chart', 'Subscription Share', subscriptionData);
+
+    {% if monthly_spending_trend %}
+    drawLineChart(
+        'monthly-spending-chart',
+        {{ monthly_spending_trend | map(attribute='month') | list | tojson }},
+        {{ monthly_spending_trend | map(attribute='total') | list | tojson }}
+    );
+    {% endif %}
 }
 
 loadCharts();
