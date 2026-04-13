@@ -4,11 +4,12 @@
 <style>
     body {
         overflow-x: hidden;
-        background-color: #f8f9fa;
+        background-color: transparent;
     }
 
     #wrapper {
         display: flex;
+        min-height: 100vh;
     }
 
     #sidebar {
@@ -16,7 +17,7 @@
         max-width: 250px;
         min-height: 100vh;
         transition: all 0.3s;
-        background: #1b263b;
+        background: var(--color-sidebar);
         color: #fff;
     }
 
@@ -25,15 +26,15 @@
     }
 
     #sidebar .nav-link {
-        color: #adb5bd;
+        color: rgba(255, 255, 255, 0.78);
         font-weight: 500;
     }
 
     #sidebar .nav-link:hover,
     #sidebar .nav-link.active {
         color: #fff;
-        background-color: #415a77;
-        border-radius: 0.5rem;
+        background-color: var(--color-sidebar-hover);
+        border-radius: 0.75rem;
     }
 
     #content {
@@ -42,20 +43,21 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
-        background-color: #f8f9fa;
+        background-color: transparent;
     }
 
     .card {
-        border: none;
-        border-radius: 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: 1.25rem;
     }
 
     .summary-card {
-        border-left: 5px solid #0d6efd;
+        border-left: 5px solid var(--color-primary);
     }
 
     .navbar {
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid var(--color-border);
+        background-color: rgba(255, 255, 255, 0.95);
     }
 
     #chatbot-toggle {
@@ -191,7 +193,7 @@
                 </a>
             </li>
             <li class="nav-item mt-auto">
-                <a class="nav-link d-flex align-items-center text-danger" href="/logout">
+                <a class="nav-link d-flex align-items-center text-warning" href="/logout">
                     <span class="material-symbols-outlined me-2">logout</span>
                     Logout
                 </a>
