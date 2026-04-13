@@ -7,14 +7,12 @@
         background-color: transparent;
     }
 
-    body.sidebar-mobile-open {
+    body.sidebar-open {
         overflow: hidden;
     }
 
     #wrapper {
-        display: flex;
         min-height: 100vh;
-        align-items: stretch;
     }
 
     #sidebar {
@@ -22,17 +20,21 @@
         max-width: 250px;
         min-height: 100vh;
         height: 100vh;
-        transition: all 0.3s;
         background: var(--color-sidebar);
         color: #fff;
-        position: sticky;
+        position: fixed;
+        left: 0;
         top: 0;
         overflow-y: auto;
-        flex-shrink: 0;
+        z-index: 1040;
+        transform: translateX(0);
+        margin-left: 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
     }
 
     #sidebar.collapsed {
-        margin-left: -250px;
+        transform: translateX(-100%);
     }
 
     #sidebar .nav-link {
@@ -68,6 +70,47 @@
     .navbar {
         border-bottom: 1px solid var(--color-border);
         background-color: rgba(255, 255, 255, 0.95);
+        position: relative;
+        min-height: 64px;
+    }
+
+    #menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    #menu-toggle .material-symbols-outlined {
+        display: block;
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .topbar-center-icon {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+    }
+
+    .topbar-center-icon img {
+        height: 52px;
+        width: auto;
+        object-fit: contain;
+    }
+
+    @media (max-width: 575.98px) {
+        .topbar-center-icon img {
+            height: 40px;
+        }
     }
 
     #sidebar-backdrop {
@@ -83,37 +126,6 @@
     #sidebar-backdrop.show {
         opacity: 1;
         pointer-events: auto;
-    }
-
-    @media (max-width: 991.98px) {
-        #wrapper {
-            display: block;
-        }
-
-        #sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            z-index: 1040;
-            transform: translateX(0);
-            margin-left: 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        #sidebar.collapsed {
-            margin-left: 0;
-            transform: translateX(-100%);
-        }
-    }
-
-    @media (min-width: 992px) {
-        #sidebar {
-            transform: none;
-        }
-
-        #sidebar.collapsed {
-            margin-left: -250px;
-        }
     }
 
     #chatbot-toggle {
@@ -215,7 +227,10 @@
 {% block content %}
 <div id="wrapper">
     <nav id="sidebar" class="p-3 d-flex flex-column collapsed">
-        <h4 class="text-white mb-4 text-center py-4">Finance Tracker</h4>
+        <h4 class="text-white mb-4 text-center py-4 d-flex align-items-center justify-content-center gap-2">
+            <img src="{{ url_for('template_images', path='bigicon.png') }}" alt="Budget Beacon logo" style="height: 30px; width: auto;">
+            <span>Budget Beacon</span>
+        </h4>
 
         <ul class="nav nav-pills flex-column gap-2 flex-grow-1">
             <li class="nav-item">
@@ -268,6 +283,9 @@
             <button class="btn btn-outline-secondary" id="menu-toggle">
                 <span class="material-symbols-outlined md-dark">menu</span>
             </button>
+            <div class="topbar-center-icon">
+                <img src="{{ url_for('template_images', path='bigicon.png') }}" alt="Site icon">
+            </div>
 
             <div class="ms-auto d-flex align-items-center gap-3">
                 <span class="fw-semibold">Welcome, {{ user.username }}</span>
@@ -292,19 +310,10 @@
     const menuToggle = document.getElementById("menu-toggle");
     const sidebarBackdrop = document.getElementById("sidebar-backdrop");
 
-    function isMobileView() {
-        return window.innerWidth < 992;
-    }
-
     function syncSidebarState() {
         const isOpen = !sidebar.classList.contains("collapsed");
-        if (isMobileView()) {
-            sidebarBackdrop.classList.toggle("show", isOpen);
-            document.body.classList.toggle("sidebar-mobile-open", isOpen);
-        } else {
-            sidebarBackdrop.classList.remove("show");
-            document.body.classList.remove("sidebar-mobile-open");
-        }
+        sidebarBackdrop.classList.toggle("show", isOpen);
+        document.body.classList.toggle("sidebar-open", isOpen);
     }
 
     function closeSidebar() {
@@ -322,9 +331,7 @@
     sidebarBackdrop.addEventListener("click", closeSidebar);
     sidebar.querySelectorAll("a.nav-link").forEach(function (link) {
         link.addEventListener("click", function () {
-            if (isMobileView()) {
-                closeSidebar();
-            }
+            closeSidebar();
         });
     });
 
@@ -387,6 +394,13 @@
 
     chatbotClose.addEventListener("click", function () {
         chatbotBox.classList.remove("open");
+    });
+
+    chatbotInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+            event.preventDefault();
+            chatbotForm.requestSubmit();
+        }
     });
 
     chatbotForm.addEventListener("submit", async function (event) {

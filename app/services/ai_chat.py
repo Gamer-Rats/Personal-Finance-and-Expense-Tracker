@@ -18,6 +18,7 @@ except Exception as exc:
 
 class AIChatService:
     _app_name = "finance_tracker_chatbot"
+    _service_unavailable_message = "AI service unavailable right now. Please try again later."
     _system_instruction = (
         "You are a helpful AI assistant inside a Personal Finance and Expense Tracker web app. "
         "Answer clearly and briefly. Help users understand budgeting, subscriptions, spending, "
@@ -63,49 +64,7 @@ class AIChatService:
         return list(dict.fromkeys(candidates))
 
     def _format_http_error(self, error: httpx.HTTPError) -> str:
-        if isinstance(error, httpx.ConnectError):
-            return (
-                "The AI endpoint could not be reached. Check AI_BASE_URL and confirm the server is online."
-            )
-
-        if isinstance(error, httpx.TimeoutException):
-            return (
-                "The AI endpoint timed out. Please try again, or check if the model server is overloaded."
-            )
-
-        if isinstance(error, httpx.HTTPStatusError):
-            response = error.response
-            status_code = response.status_code
-            detail = ""
-            try:
-                payload = response.json()
-                detail = (
-                    payload.get("detail")
-                    or payload.get("message")
-                    or payload.get("error")
-                    or ""
-                )
-            except Exception:
-                detail = (response.text or "").strip()
-
-            detail_lower = str(detail).lower()
-            if status_code in (401, 403):
-                return "The AI endpoint rejected your API key. Check AI_API_KEY."
-            if status_code == 404:
-                return "The AI endpoint path was not found. Check AI_BASE_URL and endpoint compatibility."
-            if "model not found" in detail_lower:
-                return (
-                    "The AI endpoint is reachable, but AI_MODEL_NAME was not found on that server. "
-                    "Use a model id listed by your provider."
-                )
-
-            if self.settings.env.lower() != "production":
-                snippet = str(detail)[:200] if detail else "No response detail"
-                return f"AI endpoint error {status_code}: {snippet}"
-
-        return (
-            "Sorry, the assistant could not respond right now. Please try again in a moment."
-        )
+        return self.__class__._service_unavailable_message
 
     def _build_agent(self) -> LlmAgent:
         api_base = self._normalize_api_base(self.settings.ai_base_url)
@@ -249,13 +208,4 @@ class AIChatService:
             except Exception:
                 pass
 
-            if not ADK_AVAILABLE and ADK_IMPORT_ERROR and self.settings.env.lower() != "production":
-                return (
-                    "Google ADK runtime could not be loaded, and fallback request failed. "
-                    f"Import error: {type(ADK_IMPORT_ERROR).__name__}: {ADK_IMPORT_ERROR}"
-                )
-
-            return (
-                "Sorry, the assistant could not respond right now. Please try again in a moment. "
-                "If this keeps happening, check the AI settings in your .env file and confirm the model endpoint supports OpenAI-style chat calls."
-            )
+            return self.__class__._service_unavailable_message
