@@ -1,4 +1,4 @@
-#Budget Beacon
+# Budget Beacon
 
 _Budget Beacon_ is a Personal Finance and Expense Tracker website that provides users with a simple and easy to use dashboard where they can enter their income, subscriptions, and expenses all in one place. 
 
